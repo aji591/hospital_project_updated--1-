@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital Appointment</title>
+  <img src="ajith.jpg1.jpg" alt="hospital-appointment" width="1800" height="400" >
+
+  <style>
+    body {
+   background-image: url("aj.jpg");
+    font-family: 'Arial', sans-serif;
+    padding: 20px;
+    background-color: #042e5e;
+    margin: 0;
+}
+
+h1, h2 {
+    color: #020202fa;
+    font-weight: 600;
+    text-align: center;
+}
+
+form {
+    background-color: #8fbdc1;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    margin: 30px auto;
+    font-size: 16px;
+}
+
+input, button {
+    padding: 12px;
+    margin: 12px 0;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+input:focus, button:focus {
+    outline: none;
+    border-color: #00ff11;
+}
+
+button {
+    background-color: #0546fa;
+    color: rgb(172, 123, 123);
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 14px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+}
+
+tr:nth-child(even) {
+    background-color: #f4f8f3fe;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+  </style>
+</head>
+<body>
+
+  <h1> Hospital Appointment Booking System</h1>
+  <form id="appointmentForm">
+    <input type="text" name="hospital" placeholder="Hospital Name" required>
+    <input type="text" name="patient" placeholder="Patient Name" required>
+    <input type="text" name="doctor" placeholder="Doctor Name" required>
+    <input type="text" name="contact" placeholder="Contact Number" required>
+    <input type="date" name="date" required>
+    <input type="text" name="reason" placeholder="Reason for Visit" required>
+    <button type="submit">Book</button>
+  </form>
+
+  <h2>Booked Appointments</h2>
+  <table id="appointmentsTable">
+    <thead>
+      <tr>
+        <th>Hospital</th>
+        <th>Patient</th>
+        <th>Doctor</th>
+        <th>Contact</th>
+        <th>Date</th>
+        <th>Reason</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="appointmentsTableBody"></tbody>
+  </table>
+
+  <script>
+    function loadAppointments() {
+      fetch('http://localhost:3000/appointments')
+        .then(response => response.json())
+        .then(data => {
+          const tableBody = document.getElementById('appointmentsTableBody');
+          tableBody.innerHTML = '';
+          data.forEach(appointment => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${appointment.hospital}</td>
+              <td>${appointment.patient}</td>
+              <td>${appointment.doctor}</td>
+              <td>${appointment.contact}</td>
+              <td>${appointment.date}</td>
+              <td>${appointment.reason}</td>
+              <td><button onclick="deleteAppointment(${appointment.id})">Delete</button></td>
+            `;
+            tableBody.appendChild(row);
+          });
+        })
+        .catch(error => console.error('Error loading appointments:', error));
+    }
+
+    document.getElementById('appointmentForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const data = {};
+      formData.forEach((value, key) => data[key] = value);
+
+      fetch('http://localhost:3000/appointments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(response => {
+        if (!response.ok) throw new Error("Failed to book");
+        alert('Appointment booked successfully!');
+        this.reset();
+        loadAppointments();
+      })
+      .catch(err => {
+        alert('Error booking appointment.');
+        console.error(err);
+      });
+    });
+
+    function deleteAppointment(id) {
+      if (confirm('Are you sure you want to delete this appointment?')) {
+        fetch(`http://localhost:3000/appointments/${id}`, { method: 'DELETE' })
+        .then(response => {
+          if (!response.ok) throw new Error("Failed to delete appointment");
+          alert('Appointment deleted!');
+          loadAppointments();
+        })
+        .catch(err => {
+          alert('Error deleting appointment');
+          console.error(err);
+        });
+      }
+    }
+
+    loadAppointments();
+  </script>
+
+</body>
+</html>
